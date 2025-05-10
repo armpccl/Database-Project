@@ -1,98 +1,89 @@
-import { pool } from '../db.js';
-import bcrypt from 'bcryptjs';
+import User from '../models/User.js';
 
-/**
- * GET /api/users/me
- * Returns the profile of the authenticated user.
- */
-export const getProfile = async (req, res) => {
+export const updateUserProfile = async (req, res, next) => {
   try {
-    const customerID = req.user.customerID;
-    const [[user]] = await pool.execute(
-      `SELECT 
-         customerID, username, email, fname, lname, phone,
-         house_number, building, moo, village, soi, road,
-         sub_district, district, province, postal_code
-       FROM Customers
-       WHERE customerID = ?`,
-      [customerID]
-    );
+    const user = await User.findById(req.user.userID);
 
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    if (user) {
+      const { fname, lname, phone, house_number, building, moo, village, soi, road, sub_district, district, province, postal_code } = req.body;
+
+      const updateData = {
+        fname: fname || user.fname,
+        lname: lname || user.lname,
+        phone: phone || user.phone,
+        house_number: house_number, // Allow null/empty to clear
+        building: building,
+        moo: moo,
+        village: village,
+        soi: soi,
+        road: road,
+        sub_district: sub_district,
+        district: district,
+        province: province,
+        postal_code: postal_code,
+      };
+
+      const result = await User.updateProfile(req.user.userID, updateData);
+
+      if (result.affectedRows > 0 || result.message) {
+         const updatedUser = await User.findById(req.user.userID);
+         res.json(updatedUser);
+      } else {
+         res.status(400);
+         throw new Error('Could not update user profile.');
+      }
+
+    } else {
+      res.status(404);
+      throw new Error('User not found');
     }
-
-    res.json(user);
-  } catch (err) {
-    console.error('getProfile error:', err);
-    res.status(500).json({ error: 'Cannot fetch profile' });
+  } catch (error) {
+    next(error);
   }
 };
 
-/**
- * PUT /api/users/me
- * Updates password and/or address fields for the authenticated user.
- */
-export const updateProfile = async (req, res) => {
+export const updateUserPassword = async (req, res, next) => {
   try {
-    const customerID = req.user.customerID;
-    const {
-      password,
-      house_number,
-      building,
-      moo,
-      village,
-      soi,
-      road,
-      sub_district,
-      district,
-      province,
-      postal_code
-    } = req.body;
-
-    const fields = [];
-    const values = [];
-
-    // Update password if provided
-    if (password) {
-      const hashed = await bcrypt.hash(password, 10);
-      fields.push('password = ?');
-      values.push(hashed);
+    const { oldPassword, newPassword } = req.body;
+    if (!oldPassword || !newPassword) {
+        res.status(400);
+        throw new Error('Old and new passwords are required.');
     }
 
-    // Map address fields
-    const addressMap = {
-      house_number,
-      building,
-      moo,
-      village,
-      soi,
-      road,
-      sub_district,
-      district,
-      province,
-      postal_code
-    };
+    const user = await User.findByEmail(req.user.email); // Fetch user with password hash
 
-    Object.entries(addressMap).forEach(([key, val]) => {
-      if (val !== undefined) {
-        fields.push(`${key} = ?`);
-        values.push(val);
-      }
-    });
-
-    if (fields.length === 0) {
-      return res.status(400).json({ error: 'No data to update' });
+    if (user && (await comparePassword(oldPassword, user.password))) {
+        if (newPassword.length < 6) { // Example validation
+            res.status(400);
+            throw new Error('New password must be at least 6 characters long.');
+        }
+        await User.updatePassword(req.user.userID, newPassword);
+        res.json({ message: 'Password updated successfully' });
+    } else {
+        res.status(401);
+        throw new Error('Invalid old password.');
     }
-
-    // Build and execute query
-    const sql = `UPDATE Customers SET ${fields.join(', ')} WHERE customerID = ?`;
-    values.push(customerID);
-
-    await pool.execute(sql, values);
-    res.json({ message: 'Profile updated successfully' });
-  } catch (err) {
-    console.error('updateProfile error:', err);
-    res.status(500).json({ error: 'Cannot update profile' });
+  } catch (error) {
+    next(error);
   }
+};
+
+// Placeholder for sending questions (might belong to a different controller like questionController)
+export const submitQuestion = async (req, res, next) => {
+    // This should ideally be in a `questionController.js` and `questionModel.js`
+    // See `questionController.js` for a more complete example.
+    try {
+        const { qna_type, description } = req.body;
+        const userID = req.user.userID;
+
+        if (!description) {
+            res.status(400);
+            throw new Error('Question description cannot be empty.');
+        }
+        // Add to Question table logic here (using a Question model)
+        // e.g., await Question.create({ userID, qna_type, description });
+        res.status(201).json({ message: 'Question submitted successfully.' });
+    } catch (error) {
+        next(error);
+    }
 };
