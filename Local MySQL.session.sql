@@ -16,7 +16,9 @@ CREATE TABLE Users (
     sub_district VARCHAR(50),
     district VARCHAR(50),
     province VARCHAR(50),
-    postal_code CHAR(5)
+    postal_code CHAR(5), 
+    roleID INT NOT NULL,
+    FOREIGN KEY (roleID) REFERENCES Roles(roleID),
 );
 
 CREATE TABLE Books (
@@ -175,10 +177,4 @@ CREATE TABLE Roles (
     role_name VARCHAR(50) UNIQUE
 );
 
-CREATE TABLE User_Roles (
-    userID INT,
-    roleID INT,
-    PRIMARY KEY (userID, roleID),
-    FOREIGN KEY (userID) REFERENCES Users(userID),
-    FOREIGN KEY (roleID) REFERENCES Roles(roleID)
-);
+
