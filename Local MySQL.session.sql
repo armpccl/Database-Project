@@ -1,6 +1,11 @@
+CREATE TABLE Roles (
+    roleID INT AUTO_INCREMENT PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE
+);
+
 
 CREATE TABLE Users (
-    userID INT PRIMARY KEY,
+    userID INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) UNIQUE,
     email VARCHAR(100) UNIQUE,
     password VARCHAR(100) NOT NULL,
@@ -18,73 +23,38 @@ CREATE TABLE Users (
     province VARCHAR(50),
     postal_code CHAR(5), 
     roleID INT NOT NULL,
-    FOREIGN KEY (roleID) REFERENCES Roles(roleID),
+    FOREIGN KEY (roleID) REFERENCES Roles(roleID)
 );
 
-CREATE TABLE Books (
-    bookID INT PRIMARY KEY,
-    book_name VARCHAR(255) NOT NULL,
-    author VARCHAR(100) NOT NULL,
+
+CREATE TABLE Cart_promotion (
+    cart_promotionID INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
     description TEXT,
-    price DECIMAL(10, 2) NOT NULL,
-    stock INT DEFAULT 0,
-    book_type VARCHAR(50) NOT NULL,
-    category VARCHAR(50) NOT NULL,
-    page_number INT NOT NULL,
-    publisher VARCHAR(100) NOT NULL,
-    publication_year YEAR NOT NULL,
-    edition_no INT DEFAULT 1,
-    edition_year YEAR,
-    book_promotionID INT,
-    image LONGBLOB
-    FOREIGN KEY (book_promotionID) REFERENCES Book_promotion(book_promotionID)
+    discount_type VARCHAR(50) NOT NULL,
+    discount_value DECIMAL(10, 2) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    min_purchase DECIMAL(10, 2),
+    max_discount DECIMAL(10, 2),
+    is_active BOOLEAN
 );
 
-CREATE TABLE Cart (
-    cartID INT PRIMARY KEY,
-    total_price DECIMAL(10, 2) DEFAULT 0,
-    created TIMPESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    userID INT NOT NULL,
-    coupon VARCHAR(50),
-    cart_promotionID INT, 
-    FOREIGN KEY (userID) REFERENCES Users(userID),
-    FOREIGN KEY (cart_promotionID) REFERENCES Cart_promotion(cart_promotionID),
-    FOREIGN KEY (coupon) REFERENCES Coupon(couponID)
-);
-
-CREATE TABLE Orders (
-    orderID INT PRIMARY KEY,
-    total_price DECIMAL(10, 2) NOT NULL,
-    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    status VARCHAR(50),
-    payment_method VARCHAR(50) NOT NULL,
-    payment_status VARCHAR(50) NOT NULL,
-    userID INT NOT NULL, 
-    tracking_number VARCHAR(50),
-    FOREIGN KEY (userID) REFERENCES Users(userID), 
-    FOREIGN KEY (tracking_number) REFERENCES Shipping(tracking_number)
-);
-
-CREATE TABLE Claim (
-    claimID INT PRIMARY KEY,
-    description TEXT NOT NULL,
-    claim_status VARCHAR(50),
-    resolution TEXT,
-    claim_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    last_update DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    support_document VARCHAR(255),
-    userID INT NOT NULL,
-    orderID INT NOT NULL,
-    bookID INT NOT NULL, 
-    FOREIGN KEY (userID) REFERENCES Users(userID),
-    FOREIGN KEY (orderID) REFERENCES Orders(orderID),
-    FOREIGN KEY (bookID) REFERENCES Books(bookID)
+CREATE TABLE Book_promotion (
+    book_promotionID INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    discount_type VARCHAR(50) NOT NULL,
+    discount_value DECIMAL(10, 2) NOT NULL,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    min_purchase DECIMAL(10, 2),
+    max_discount DECIMAL(10, 2),
+    is_active BOOLEAN
 );
 
 CREATE TABLE Coupon (
-    couponID INT PRIMARY KEY,
+    couponID INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
     discount_type VARCHAR(50) NOT NULL,
@@ -99,30 +69,36 @@ CREATE TABLE Coupon (
 );
 
 
-CREATE TABLE Cart_promotion (
-    cart_promotionID INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+CREATE TABLE Books (
+    bookID INT AUTO_INCREMENT PRIMARY KEY,
+    book_name VARCHAR(255) NOT NULL,
+    author VARCHAR(100) NOT NULL,
     description TEXT,
-    discount_type VARCHAR(50) NOT NULL,
-    discount_value DECIMAL(10, 2) NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    min_purchase DECIMAL(10, 2),
-    max_discount DECIMAL(10, 2),
-    is_active BOOLEAN
+    price DECIMAL(10, 2) NOT NULL,
+    stock INT DEFAULT 0,
+    book_type VARCHAR(50) NOT NULL,
+    category VARCHAR(50) NOT NULL,
+    page_number INT NOT NULL,
+    publisher VARCHAR(100) NOT NULL,
+    publication_year YEAR NOT NULL,
+    edition_no INT DEFAULT 1,
+    edition_year YEAR,
+    book_promotionID INT,
+    image LONGBLOB,
+    FOREIGN KEY (book_promotionID) REFERENCES Book_promotion(book_promotionID)
 );
 
-CREATE TABLE Book_promotion (
-    book_promotionID INT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    discount_type VARCHAR(50) NOT NULL,
-    discount_value DECIMAL(10, 2) NOT NULL,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    min_purchase DECIMAL(10, 2),
-    max_discount DECIMAL(10, 2),
-    is_active BOOLEAN
+CREATE TABLE Cart (
+    cartID INT AUTO_INCREMENT PRIMARY KEY,
+    total_price DECIMAL(10, 2) DEFAULT 0,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    userID INT NOT NULL,
+    coupon INT,
+    cart_promotionID INT, 
+    FOREIGN KEY (userID) REFERENCES Users(userID),
+    FOREIGN KEY (cart_promotionID) REFERENCES Cart_promotion(cart_promotionID),
+    FOREIGN KEY (coupon) REFERENCES Coupon(couponID)
 );
 
 CREATE TABLE Shipping (
@@ -131,6 +107,39 @@ CREATE TABLE Shipping (
     shipping_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     carrier VARCHAR(100) NOT NULL
 );
+
+CREATE TABLE Orders (
+    orderID INT AUTO_INCREMENT PRIMARY KEY,
+    total_price DECIMAL(10, 2) NOT NULL,
+    created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    status VARCHAR(50),
+    payment_method VARCHAR(50) NOT NULL,
+    payment_status VARCHAR(50) NOT NULL,
+    userID INT NOT NULL, 
+    tracking_number VARCHAR(50),
+    FOREIGN KEY (userID) REFERENCES Users(userID), 
+    FOREIGN KEY (tracking_number) REFERENCES Shipping(tracking_number)
+);
+
+CREATE TABLE Claim (
+    claimID INT AUTO_INCREMENT PRIMARY KEY,
+    description TEXT NOT NULL,
+    claim_status VARCHAR(50),
+    resolution TEXT,
+    claim_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    last_update DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    support_document VARCHAR(255),
+    userID INT NOT NULL,
+    orderID INT NOT NULL,
+    bookID INT NOT NULL, 
+    FOREIGN KEY (userID) REFERENCES Users(userID),
+    FOREIGN KEY (orderID) REFERENCES Orders(orderID),
+    FOREIGN KEY (bookID) REFERENCES Books(bookID)
+);
+
+
+
 
 CREATE TABLE Question (
     userID INT NOT NULL,
@@ -172,9 +181,5 @@ CREATE TABLE Reviews (
     FOREIGN KEY (bookID) REFERENCES Books(bookID)
 );
 
-CREATE TABLE Roles (
-    roleID INT PRIMARY KEY,
-    role_name VARCHAR(50) UNIQUE
-);
 
 
