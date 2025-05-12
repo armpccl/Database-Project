@@ -1,12 +1,8 @@
 import express from 'express';
-import { updateUserProfile, updateUserPassword, submitQuestion } from '../controllers/userController.js';
-// submitQuestion might be better in questionRoutes if it's more complex
-import { protect } from '../middleware/authMiddleware.js';
-
+import { authenticate } from '../middleware/auth.js';
+import { getProfile, updateProfile } from '../controllers/userController.js';
 const router = express.Router();
-
-router.put('/profile', protect, updateUserProfile);
-router.put('/profile/password', protect, updateUserPassword);
-// router.post('/questions', protect, submitQuestion); // Moved to questionRoutes
-
+router.use(authenticate);
+router.get('/profile', getProfile);
+router.put('/profile', updateProfile);
 export default router;

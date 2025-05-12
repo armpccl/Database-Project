@@ -1,8 +1,0 @@
-// src/hooks/useAuth.js
-import { useContext } from 'react'
-import { AuthContext } from '../context/AuthProvider'
-
-export default function useAuth() {
-  // returns { user, setUser }
-  return useContext(AuthContext)
-}
